@@ -12,21 +12,29 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Launch a talker and a listener."""
+"""Launch a local talker plus a remote talker and a listener."""
 import launch_ros
 from launch import LaunchDescription, LaunchIntrospector
-from launch.local_machine import LocalMachine
+from swri_launch_test import SshMachine
 
 
 def generate_launch_description():
+    remote_machine = SshMachine(hostname="grandgrowl.local", env='. /opt/ros/dashing/setup.bash')
     ld = LaunchDescription([
         launch_ros.actions.Node(
             package='demo_nodes_cpp', node_executable='talker', output='screen',
             remappings=[('chatter', 'my_chatter')],
-            machine=LocalMachine(hostname="grandgrowl.local")),
+            machine=remote_machine,
+        ),
+        launch_ros.actions.Node(
+            package='demo_nodes_cpp', node_executable='talker', output='screen',
+            remappings=[('chatter', 'my_chatter')],
+        ),
         launch_ros.actions.Node(
             package='demo_nodes_cpp', node_executable='listener', output='screen',
-            remappings=[('chatter', 'my_chatter')]),
+            remappings=[('chatter', 'my_chatter')],
+            machine=remote_machine
+        ),
     ])
 
     print('Starting introspection of launch description...')

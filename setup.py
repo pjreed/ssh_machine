@@ -2,7 +2,7 @@ import os
 from glob import glob
 from setuptools import setup
 
-package_name = 'swri_launch_test'
+package_name = 'ssh_machine'
 
 setup(
     name=package_name,
@@ -14,12 +14,12 @@ setup(
         (os.path.join('share', package_name), ['package.xml']),
         (os.path.join('share', package_name), glob('launch/*.launch.py'))
     ],
-    install_requires=['setuptools', 'launch'],
+    install_requires=['setuptools', 'launch', 'asyncssh'],
     zip_safe=True,
     maintainer='P. J. Reed',
     maintainer_email='preed@swri.org',
-    description='TODO: Package description',
-    license='TODO: License declaration',
+    description='Machine for launching nodes over SSH',
+    license='BSD',
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
