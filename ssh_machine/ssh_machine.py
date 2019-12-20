@@ -1,16 +1,25 @@
-# Copyright 2019 Open Source Robotics Foundation, Inc.
+# Copyright 2019 Southwest Research Institute
 #
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
+# Redistribution and use in source and binary forms, with or without modification, are permitted provided that the
+# following conditions are met:
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+# 1. Redistributions of source code must retain the above copyright notice, this list of conditions and the following
+# disclaimer.
 #
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+# 2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the
+# following disclaimer in the documentation and/or other materials provided with the distribution.
+#
+# 3. Neither the name of the copyright holder nor the names of its contributors may be used to endorse or promote
+# products derived from this software without specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES,
+# INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+# SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+# SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+# WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
+# USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
 import asyncio
 from asyncio import Event
 from logging import Logger
@@ -34,19 +43,23 @@ import launch
 
 
 class SshClientSession(asyncssh.SSHClientSession):
+    """
+    Factory for generating SSH client sessions
+    """
     def __init__(self, logger: Logger, context: LaunchContext, process_event_args=None):
         self.__logger = logger
         self.__context = context
         self.__process_event_args = process_event_args
 
     def connection_made(self, chan):
-        self.__logger.info("connection_made")
+        self.__logger.debug("connection_made")
 
     def data_received(self, data, datatype):
+        # Probably should emit this data via an event for the launch system
         self.__logger.info("data_received: %s" % str(data))
 
     def connection_lost(self, exc):
-        self.__logger.info("connection_lost: %s" % exc)
+        self.__logger.debug("connection_lost: %s" % exc)
 
 
 class SshMachine(Machine):
@@ -106,6 +119,8 @@ class SshMachine(Machine):
         env = process_event_args['env']
 
         if not self.__logger:
+            # The first time this method is called, set up a logger and
+            # event handlers for it.
             self.__logger = launch.logging.get_logger(process_event_args['name'])
 
             event_handlers = [
@@ -120,7 +135,7 @@ class SshMachine(Machine):
                 OnShutdown(on_shutdown=self.__on_shutdown)
             ]
 
-            self.__logger.info("Registering event handlers")
+            self.__logger.debug("Registering event handlers")
             for handler in event_handlers:
                 context.register_event_handler(handler)
 
@@ -129,23 +144,20 @@ class SshMachine(Machine):
                 ', '.join(cmd), cwd, 'True' if env is not None else 'False'
             ))
 
-        self.__logger.info("Executing process")
+        self.__logger.debug("Executing process")
 
         process_event_args['pid'] = 0
         await context.emit_event(ProcessStarted(**process_event_args))
 
         try:
-            remote_cmd = ""
-            if self.__env:
-                remote_cmd = "%s;" % self.__env
-            remote_cmd = "%s%s" % (remote_cmd, ' '.join(cmd))
-            self.__logger.info("Remote cmd: %s" % remote_cmd)
-
-            def create_session():
-                return SshClientSession(self.__logger, context, process_event_args)
-
             if self.__first_run:
+                # The first time this method runs, create an SSH connection
+                # and initialize the environment.
                 self.__first_run = False
+
+                def create_session():
+                    return SshClientSession(self.__logger, context, process_event_args)
+
                 self.__conn = await asyncssh.connect(self.__hostname)
                 self.__chan, session = await self.__conn.create_session(
                     create_session,
@@ -155,8 +167,12 @@ class SshMachine(Machine):
                     self.__chan.write('\n')
                 self.__connection_ready.set()
 
+            # Every other time this method is called, we need to wait until
+            # the environment is ready.
             await self.__connection_ready.wait()
             if self.__chan:
+                # Run the command and put it in the background, then wait until
+                # the SSH channel closes
                 self.__chan.write(' '.join(cmd) + ' &\n')
 
                 self.__logger.debug("Waiting for SSH channel to close")
@@ -166,7 +182,7 @@ class SshMachine(Machine):
                     returncode=self.__chan.get_exit_status(),
                     **process_event_args))
 
-                self.__logger.info("SSH connection exiting")
+                self.__logger.debug("SSH connection exiting")
             else:
                 self.__logger.error("SSH channel wasn't ready")
         except Exception:
