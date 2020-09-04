@@ -23,23 +23,23 @@
 """Launch a local talker plus a remote talker and a listener."""
 import launch_ros
 from launch import LaunchDescription, LaunchIntrospector
-from swri_launch_test import SshMachine
+from ssh_machine import SshMachine
 
 
 def generate_launch_description():
-    remote_machine = SshMachine(hostname="grandgrowl.local", env='. /opt/ros/dashing/setup.bash')
+    remote_machine = SshMachine(hostname="regulus.dyn.datasys.swri.edu", env='. /opt/ros/dashing/setup.bash')
     ld = LaunchDescription([
         launch_ros.actions.Node(
-            package='demo_nodes_cpp', node_executable='talker', output='screen',
+            package='demo_nodes_cpp', executable='talker', output='screen',
             remappings=[('chatter', 'my_chatter')],
             machine=remote_machine,
         ),
         launch_ros.actions.Node(
-            package='demo_nodes_cpp', node_executable='talker', output='screen',
+            package='demo_nodes_cpp', executable='talker', output='screen',
             remappings=[('chatter', 'my_chatter')],
         ),
         launch_ros.actions.Node(
-            package='demo_nodes_cpp', node_executable='listener', output='screen',
+            package='demo_nodes_cpp', executable='listener', output='screen',
             remappings=[('chatter', 'my_chatter')],
             machine=remote_machine
         ),

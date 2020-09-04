@@ -10,9 +10,8 @@ https://github.com/pjreed/launch/tree/multi-machine-launching
 Prerequisites
 -------------
 
-This has been tested in ROS 2 Dashing and Eloquent on Ubuntu 18.04.  It
-also requires the `python3-asyncssh` packages, which does not (yet) have
-a rosdep key and must be manually installed.
+This has been tested in ROS 2 Foxy on Ubuntu 20.04.  It
+also requires the `python3-asyncssh` package.
 
 Example Usage
 -------------
@@ -21,7 +20,7 @@ Create a workspace, or clone these repos into an existing one:
 
 ```bash
 # Set up the workspace
-. /opt/ros/dashing/setup.bash
+. /opt/ros/foxy/setup.bash
 mkdir -p ssh_machine_ws/src
 cd ssh_machine_ws/src
 git clone -b multi-machine-launching https://github.com/pjreed/launch.git
@@ -29,7 +28,6 @@ git clone https://github.com/pjreed/ssh_machine.git
 
 # Install dependencies
 rosdep install . -y --from-paths -i --os=ubuntu:bionic --skip-keys python3-asyncssh
-sudo apt install python3-asyncssh
 
 # Build it
 cd ..
@@ -66,6 +64,12 @@ Currently:
 - The paths to ROS nodes are resolved before the command is sent over the SSH
   channel, meaning nodes must be installed on both the local and remote host and
   they must be in the same path.
+    - A side effect of this is that you must have the same ROS distrubtion
+      installed on every host; for example, if you try to launch a node with the
+      package `demo_nodes_cpp` and executable `talker` on a remote host, if the
+      local host is using ROS Foxy, then it will be resolved to
+      `/opt/ros/foxy/lib/demo_nodes_cpp/talker` before it is executed on the
+      remote host.
 - The ssh connection is not very customizable; it will connect as the user who
   is running the launch script, and it will not prompt the user for a password,
   so you must have public key authentication correctly configured.
