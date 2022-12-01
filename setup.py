@@ -17,7 +17,7 @@ setup(
     install_requires=['setuptools', 'launch', 'asyncssh'],
     zip_safe=True,
     maintainer='P. J. Reed',
-    maintainer_email='preed@swri.org',
+    maintainer_email='phillipreed@hatchbed.com',
     description='Machine for launching nodes over SSH',
     license='BSD',
     tests_require=['pytest'],

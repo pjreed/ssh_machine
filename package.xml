@@ -4,7 +4,7 @@
   <name>ssh_machine</name>
   <version>0.0.0</version>
   <description>Machine for launching nodes over SSH</description>
-  <maintainer email="preed@swri.org">P. J. Reed</maintainer>
+  <maintainer email="phillipreed@hatchbed.com">P. J. Reed</maintainer>
   <license>BSD</license>
 
   <buildtool_depend>ament_cmake_python</buildtool_depend>

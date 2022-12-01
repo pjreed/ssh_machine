@@ -1,4 +1,4 @@
-# Copyright 2019 Southwest Research Institute
+# Copyright 2022 Hatchbed, L.L.C.
 #
 # Redistribution and use in source and binary forms, with or without modification, are permitted provided that the
 # following conditions are met:
@@ -27,7 +27,7 @@ from ssh_machine import SshMachine
 
 
 def generate_launch_description():
-    remote_machine = SshMachine(hostname="regulus.dyn.datasys.swri.edu", env='. /opt/ros/dashing/setup.bash')
+    remote_machine = SshMachine(hostname="example.com", env='. /opt/ros/foxy/setup.bash')
     ld = LaunchDescription([
         launch_ros.actions.Node(
             package='demo_nodes_cpp', executable='talker', output='screen',

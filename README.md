@@ -10,7 +10,7 @@ https://github.com/pjreed/launch/tree/multi-machine-launching
 Prerequisites
 -------------
 
-This has been tested in ROS 2 Foxy on Ubuntu 20.04.  It
+This has been tested in ROS 2 Foxy on Ubuntu 22.04.  It
 also requires the `python3-asyncssh` package.
 
 Example Usage
@@ -27,11 +27,11 @@ git clone -b multi-machine-launching https://github.com/pjreed/launch.git
 git clone https://github.com/pjreed/ssh_machine.git
 
 # Install dependencies
-rosdep install . -y --from-paths -i --os=ubuntu:bionic --skip-keys python3-asyncssh
+rosdep install . -y --from-paths -i
 
 # Build it
 cd ..
-colcon build --merge-install
+colcon build --symlink-install --allow-overriding launch launch_testing launch_testing_ament_cmake launch_xml launch_yaml
 . install/setup.bash
 
 # Run the demo; edit ssh_machine/launch/pub_sub.launch.py to use a machine you can access
@@ -53,7 +53,7 @@ to the configured host, then running processes in the background; when it is
 told to shut down, it kills all background processes and then exits.  It takes
 two arguments; a `hostname` that specifies the host name (or IP) of the remote
 host, and an `env` that specifies a script that should be sourced to configure
-the environment (for example, `/opt/ros/dashing/setup.bash`).
+the environment (for example, `/opt/ros/foxy/setup.bash`).
 
 Limitations
 -----------
